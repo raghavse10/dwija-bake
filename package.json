@@ -1,0 +1,21 @@
+{
+  "name": "dwijabake",
+  "private": true,
+  "packageManager": "pnpm@9.14.2",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm db:up && dotenv -e .env -- turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "db:up": "docker compose -f infra/docker-compose.yml up -d",
+    "db:down": "docker compose -f infra/docker-compose.yml down",
+    "db:migrate": "pnpm --filter api exec prisma migrate deploy"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^7.4.0",
+    "turbo": "^2.3.0"
+  }
+}
