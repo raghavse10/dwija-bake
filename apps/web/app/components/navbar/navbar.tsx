@@ -20,7 +20,8 @@ export function Navbar() {
     <>
       <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <header className="sticky top-0 z-30 border-b border-border bg-surface/90 backdrop-blur-md">
+      <header className="font-heading relative sticky top-0 z-30 border-b border-border bg-surface/90 backdrop-blur-md">
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-accent-gold/50 pointer-events-none" aria-hidden />
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
           {/* Mobile: menu (left) */}
           <div className="flex shrink-0 md:hidden">
@@ -72,7 +73,7 @@ export function Navbar() {
               <Link
                 key={href}
                 href={href}
-                className="rounded-lg px-4 py-2 text-foreground hover:bg-background transition-colors font-medium"
+                className="font-heading rounded-lg px-4 py-2 text-foreground hover:bg-background transition-colors font-medium tracking-wide"
               >
                 {label}
               </Link>

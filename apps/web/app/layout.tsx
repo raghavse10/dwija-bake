@@ -1,7 +1,29 @@
 import type { Metadata } from "next";
+import { Cormorant_Garamond, Great_Vibes, Nunito } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./context/theme-context";
 import { Navbar } from "./components/navbar";
+
+const cormorant = Cormorant_Garamond({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-heading-raw",
+  display: "swap",
+});
+
+const greatVibes = Great_Vibes({
+  weight: ["400"],
+  subsets: ["latin"],
+  variable: "--font-accent-raw",
+  display: "swap",
+});
+
+const nunito = Nunito({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-body-raw",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Dwija Bake Studio",
@@ -17,7 +39,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${cormorant.variable} ${greatVibes.variable} ${nunito.variable}`}
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -25,7 +51,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased min-h-screen bg-background text-foreground">
+      <body className={`${nunito.className} antialiased min-h-screen bg-background text-foreground`}>
         <ThemeProvider>
           <Navbar />
           {children}

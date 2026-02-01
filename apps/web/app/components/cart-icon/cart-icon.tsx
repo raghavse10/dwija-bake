@@ -28,7 +28,7 @@ export function CartIcon({ count = 0 }: CartIconProps) {
       <Icon className="size-5" />
       {showBadge && (
         <span
-          className={`absolute -top-0.5 -right-0.5 flex h-4.5 w-4.5 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent font-semibold text-white md:h-5 md:w-5 dark:bg-accent-gold dark:text-brand-deep ${
+          className={`absolute font-body -top-0.5 -right-0.5 flex h-4.5 w-4.5 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent font-semibold text-white md:h-5 md:w-5 dark:bg-accent-gold dark:text-brand-deep ${
             isTwoChars ? "text-[0.55rem] md:text-[0.65rem]" : "text-[0.75rem] md:text-[0.8rem]"
           }`}
           aria-hidden

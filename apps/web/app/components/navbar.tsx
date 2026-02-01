@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ThemeToggle } from "./theme-toggle";
 import { NavDrawer } from "./nav-drawer";
 import { CartIcon } from "./cart-icon";
+import { useTheme } from "../context/theme-context";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -15,13 +16,15 @@ const navLinks = [
 
 export function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { theme } = useTheme();
 
   return (
     <>
       <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <header className="sticky top-0 z-30 border-b border-border bg-surface/90 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+      <header className="font-heading relative sticky top-0 z-30 border-b border-border bg-surface/90 backdrop-blur-md">
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-accent-gold/50 pointer-events-none" aria-hidden />
+        <div className="mx-auto flex h-16 md:h-24 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
           {/* Mobile: menu (left) */}
           <div className="flex shrink-0 md:hidden">
             <button
@@ -39,27 +42,13 @@ export function Navbar() {
             <Link
               href="/"
               className="flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-lg"
-              aria-label="Home"
+              aria-label="Dwija Bake Studio – Home"
             >
-              <span className="relative flex h-9 w-36 items-center justify-center overflow-hidden rounded-md bg-brand-deep/10">
-                {/* Replace with brand.png when provided; fallback shows until then */}
-                <img
-                  src="/brand.png"
-                  alt="Dwija Bake Studio"
-                  className="h-full w-full object-contain object-center"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                    const fallback = e.currentTarget.nextElementSibling;
-                    if (fallback) (fallback as HTMLElement).style.display = "flex";
-                  }}
-                />
-                <span
-                  className="hidden items-center justify-center text-sm font-semibold text-brand-deep"
-                  style={{ display: "none" }}
-                >
-                  Brand
-                </span>
-              </span>
+              <img
+                src={theme === "light" ? "/brand-stacked-light-theme.png" : "/brand-stacked.png"}
+                alt="Dwija Bake Studio"
+                className="h-10 w-auto object-contain object-center md:h-16 ml:0 md:ml-10"
+              />
             </Link>
           </div>
 
@@ -72,7 +61,7 @@ export function Navbar() {
               <Link
                 key={href}
                 href={href}
-                className="rounded-lg px-4 py-2 text-foreground hover:bg-background transition-colors font-medium"
+                className="font-heading uppercase rounded-lg px-4 py-2 text-foreground hover:bg-background transition-colors font-bold tracking-wide text-xl"
               >
                 {label}
               </Link>
@@ -97,7 +86,7 @@ export function Navbar() {
               >
                 <User className="size-5" />
               </Link>
-              <CartIcon count={0} />
+              <CartIcon count={2} />
             </div>
             <div className="hidden md:block ml-3">
               <ThemeToggle />

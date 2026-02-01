@@ -7,6 +7,10 @@
     so they switch with the theme; define those values below.
 */
 @theme {
+  /* Fonts (Google Fonts via next/font – variables set on html in layout) */
+  --font-heading: var(--font-heading-raw), Georgia, serif;
+  --font-accent: var(--font-accent-raw), cursive;
+  --font-body: var(--font-body-raw), ui-sans-serif, sans-serif;
   /* Brand (same in both themes) */
   --color-brand-deep: #592935;
   --color-brand-gold: #d1a565;
@@ -29,7 +33,7 @@
   --color-accent-gold: var(--accent-gold);
 }
 
-/* Light theme – pink/cream with brand colors */
+/* Light theme – pink/cream with brand colors (darker accent-gold for contrast) */
 :root {
   --background: #FDEDED;
   --foreground: #592935;
@@ -37,7 +41,7 @@
   --muted: #8a4355;
   --border: #E2B4C1;
   --accent: #592935;
-  --accent-gold: #d1a565;
+  --accent-gold: #b8924f;
 }
 
 /* Dark theme – deeper burgundy/pink (no black), same brand colors */
@@ -55,9 +59,72 @@ html {
   overscroll-behavior: none;
 }
 
+/* Layered artistic background: gradient + vignette + dot grid + grain */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-body);
   overscroll-behavior: none;
+  position: relative;
+}
+
+/* Soft glow, vignette, and dot grid in one layer */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 1;
+  background-image:
+    radial-gradient(
+      ellipse 120% 80% at 50% 0%,
+      rgba(253, 242, 247, 0.5) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 100% 100% at 50% 100%,
+      transparent 55%,
+      rgba(89, 41, 53, 0.06) 100%
+    ),
+    radial-gradient(circle, var(--border) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 20px 20px;
+}
+
+.dark body::before {
+  background-image:
+    radial-gradient(
+      ellipse 120% 80% at 50% 0%,
+      rgba(61, 34, 41, 0.4) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 100% 100% at 50% 100%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.2) 100%
+    ),
+    radial-gradient(circle, var(--border) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 20px 20px;
+  opacity: 0.95;
+}
+
+/* Paper grain */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.04;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.dark body::after {
+  opacity: 0.06;
+}
+
+/* Ensure main content sits above texture */
+main {
+  position: relative;
+  z-index: 1;
 }
