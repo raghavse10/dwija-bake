@@ -27,6 +27,18 @@ export interface MultiselectDropdownProps {
   className?: string;
   /** Max height of the options list (default: 240px) */
   maxListHeight?: string | number;
+  /** Show search input (default: true) */
+  searchable?: boolean;
+  /** Allow multiple selection (default: true). When false, selecting an option replaces the selection and calls onSelectOption if provided. */
+  multiSelect?: boolean;
+  /** Called when an option is selected in single-select mode (e.g. for navigation) */
+  onSelectOption?: (value: string) => void;
+  /** Optional custom trigger button className (e.g. to match plain nav labels) */
+  triggerClassName?: string;
+  /** Show chevron on trigger (default: true). Set false for plain-label appearance. */
+  showChevron?: boolean;
+  /** Open dropdown on hover (default: false). Uses a short delay on leave so the pointer can move to the panel. */
+  openOnHover?: boolean;
 }
 
 export function MultiselectDropdown({
@@ -38,21 +50,28 @@ export function MultiselectDropdown({
   disabled = false,
   className = "",
   maxListHeight = 240,
+  searchable = true,
+  multiSelect = true,
+  onSelectOption,
+  triggerClassName,
+  showChevron = true,
+  openOnHover = false,
 }: MultiselectDropdownProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const leaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const filteredOptions = useMemo(() => {
-    if (!search.trim()) return options;
+    if (!searchable || !search.trim()) return options;
     const q = search.trim().toLowerCase();
     return options.filter(
       (o) =>
         o.label.toLowerCase().includes(q) || o.value.toLowerCase().includes(q)
     );
-  }, [options, search]);
+  }, [options, search, searchable]);
 
   const selectedSet = useMemo(() => new Set(value), [value]);
   const selectedOptions = useMemo(
@@ -62,12 +81,18 @@ export function MultiselectDropdown({
 
   const toggleOption = useCallback(
     (optionValue: string) => {
-      const next = selectedSet.has(optionValue)
-        ? value.filter((v) => v !== optionValue)
-        : [...value, optionValue];
-      onChange(next);
+      if (multiSelect) {
+        const next = selectedSet.has(optionValue)
+          ? value.filter((v) => v !== optionValue)
+          : [...value, optionValue];
+        onChange(next);
+      } else {
+        onChange([optionValue]);
+        onSelectOption?.(optionValue);
+        setOpen(false);
+      }
     },
-    [value, selectedSet, onChange]
+    [value, selectedSet, onChange, multiSelect, onSelectOption]
   );
 
   const clearSelection = useCallback(
@@ -90,7 +115,7 @@ export function MultiselectDropdown({
     onChange(value.filter((v) => !filteredSet.has(v)));
   }, [filteredOptions, value, onChange]);
 
-  // Close on outside click
+  // Close on outside click (when not openOnHover, or always for click-away)
   useEffect(() => {
     if (!open) return;
     const handle = (e: MouseEvent) => {
@@ -101,13 +126,34 @@ export function MultiselectDropdown({
     return () => document.removeEventListener("mousedown", handle);
   }, [open]);
 
-  // Focus search when opening
+  // Hover: open on enter, close on leave with delay so pointer can move to panel
+  const handleMouseEnter = useCallback(() => {
+    if (!openOnHover || disabled) return;
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+    setOpen(true);
+  }, [openOnHover, disabled]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (!openOnHover) return;
+    leaveTimeoutRef.current = setTimeout(() => setOpen(false), 150);
+  }, [openOnHover]);
+
   useEffect(() => {
-    if (open) {
+    return () => {
+      if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current);
+    };
+  }, []);
+
+  // Focus search when opening (only when searchable)
+  useEffect(() => {
+    if (open && searchable) {
       setSearch("");
       requestAnimationFrame(() => searchInputRef.current?.focus());
     }
-  }, [open]);
+  }, [open, searchable]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLDivElement>) => {
@@ -131,18 +177,28 @@ export function MultiselectDropdown({
       ? placeholder
       : value.length === 1
         ? selectedOptions[0]?.label ?? placeholder
-        : `${value.length} selected`;
+        : multiSelect
+          ? `${value.length} selected`
+          : selectedOptions[0]?.label ?? placeholder;
 
   const maxHeight =
     typeof maxListHeight === "number"
       ? `${maxListHeight}px`
       : maxListHeight;
 
+  const defaultTriggerClass =
+    "flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-left text-sm text-foreground transition-colors hover:border-pink-cherry focus-visible:outline focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50";
+  const triggerClass = triggerClassName
+    ? `flex items-center gap-1 rounded-lg ${triggerClassName}`.trim()
+    : defaultTriggerClass;
+
   return (
     <div
       ref={containerRef}
-      className={`relative w-full min-w-[200px] ${className}`.trim()}
+      className={`relative ${triggerClassName ? "min-w-0" : "w-full min-w-[200px]"} ${className}`.trim()}
       onKeyDown={handleKeyDown}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <button
         type="button"
@@ -151,64 +207,70 @@ export function MultiselectDropdown({
         aria-haspopup="listbox"
         aria-label={placeholder}
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-left text-sm text-foreground transition-colors hover:border-pink-cherry focus-visible:outline focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+        className={triggerClass}
       >
-        <span className="truncate">{triggerLabel}</span>
-        <span className="flex shrink-0 items-center gap-1">
-          {value.length > 0 && (
-            <button
-              type="button"
-              onClick={clearSelection}
-              aria-label="Clear selection"
-              className="rounded p-0.5 text-muted hover:bg-surface hover:text-foreground"
-            >
-              <X className="size-4" />
-            </button>
-          )}
-          <ChevronDown
-            className={`size-4 text-muted transition-transform ${open ? "rotate-180" : ""}`}
-          />
-        </span>
+        <span className={triggerClassName ? "" : "truncate"}>{triggerLabel}</span>
+        {showChevron && (
+          <span className="flex shrink-0 items-center gap-1">
+            {value.length > 0 && multiSelect && (
+              <button
+                type="button"
+                onClick={clearSelection}
+                aria-label="Clear selection"
+                className="rounded p-0.5 text-muted hover:bg-surface hover:text-foreground"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+            <ChevronDown
+              className={`size-4 text-muted transition-transform ${open ? "rotate-180" : ""}`}
+            />
+          </span>
+        )}
       </button>
 
       {open && (
         <div
           className="absolute left-0 right-0 top-full z-50 mt-1 flex flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-lg"
           role="listbox"
-          aria-multiselectable
+          aria-multiselectable={multiSelect}
           aria-label={placeholder}
         >
-          <div className="border-b border-border p-2">
-            <div className="flex items-center gap-2 rounded-md border border-border bg-background px-2 py-1.5">
-              <Search className="size-4 shrink-0 text-muted" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={searchPlaceholder}
-                aria-label={searchPlaceholder}
-                className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted focus:outline-none"
-              />
+          {searchable && (
+            <div className="border-b border-border p-2">
+              <div className="flex items-center gap-2 rounded-md border border-border bg-background px-2 py-1.5">
+                <Search className="size-4 shrink-0 text-muted" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={searchPlaceholder}
+                  aria-label={searchPlaceholder}
+                  className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted focus:outline-none"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="flex gap-1 border-b border-border px-2 pb-2">
-            <button
-              type="button"
-              onClick={selectAll}
-              className="rounded px-2 py-1 text-xs text-muted hover:bg-pink-mist hover:text-foreground dark:hover:bg-pink-burgundy/20"
-            >
-              Select all
-            </button>
-            <button
-              type="button"
-              onClick={clearAll}
-              className="rounded px-2 py-1 text-xs text-muted hover:bg-pink-mist hover:text-foreground dark:hover:bg-pink-burgundy/20"
-            >
-              Clear
-            </button>
-          </div>
+          {multiSelect && (
+            <div className="flex gap-1 border-b border-border px-2 pb-2">
+              <button
+                type="button"
+                onClick={selectAll}
+                className="rounded px-2 py-1 text-xs text-muted hover:bg-pink-mist hover:text-foreground dark:hover:bg-pink-burgundy/20"
+              >
+                Select all
+              </button>
+              <button
+                type="button"
+                onClick={clearAll}
+                className="rounded px-2 py-1 text-xs text-muted hover:bg-pink-mist hover:text-foreground dark:hover:bg-pink-burgundy/20"
+              >
+                Clear
+              </button>
+            </div>
+          )}
 
           <ul
             ref={listRef}
@@ -216,7 +278,7 @@ export function MultiselectDropdown({
             style={{ maxHeight }}
           >
             {filteredOptions.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-muted">No options</li>
+              <li className="px-3 py-2 text-base text-muted">No options</li>
             ) : (
               filteredOptions.map((option) => {
                 const selected = selectedSet.has(option.value);
@@ -226,16 +288,18 @@ export function MultiselectDropdown({
                     role="option"
                     aria-selected={selected}
                     onClick={() => toggleOption(option.value)}
-                    className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-pink-mist dark:hover:bg-pink-burgundy/20"
+                    className="flex cursor-pointer items-center gap-2 px-3 py-2 text-base text-foreground hover:bg-pink-mist dark:hover:bg-pink-burgundy/20"
                   >
-                    <span
-                      className="flex size-4 shrink-0 items-center justify-center rounded border border-border"
-                      aria-hidden
-                    >
-                      {selected ? (
-                        <span className="size-2.5 rounded-sm bg-brand-gold" />
-                      ) : null}
-                    </span>
+                    {multiSelect && (
+                      <span
+                        className="flex size-4 shrink-0 items-center justify-center rounded border border-border"
+                        aria-hidden
+                      >
+                        {selected ? (
+                          <span className="size-2.5 rounded-sm bg-brand-gold" />
+                        ) : null}
+                      </span>
+                    )}
                     {option.icon && (
                       <span className="flex shrink-0 text-muted [&>svg]:size-4">
                         {option.icon}

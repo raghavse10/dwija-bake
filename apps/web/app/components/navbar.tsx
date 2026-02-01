@@ -2,21 +2,31 @@
 
 import { Menu, Search, User } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ThemeToggle } from "./theme-toggle";
 import { NavDrawer } from "./nav-drawer";
 import { CartIcon } from "./cart-icon";
+import { MultiselectDropdown } from "./multiselect-dropdown";
 import { useTheme } from "../context/theme-context";
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/order", label: "Order" },
-  { href: "/about", label: "About" },
+const orderOptions = [
+  { value: "/order#cookies", label: "Cookies" },
+  { value: "/order#tea-cakes", label: "Tea Cakes" },
+  { value: "/order#cheesecake", label: "Cheesecake" },
+  { value: "/order#fudge-brownies", label: "Brownies" },
+  { value: "/order#cakes", label: "Cakes" },
+] as const;
+
+const aboutOptions = [
+  { value: "/about/our-journey", label: "Our journey" },
+  { value: "/about/contact", label: "Contact us" },
 ] as const;
 
 export function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { theme } = useTheme();
+  const router = useRouter();
 
   return (
     <>
@@ -55,17 +65,38 @@ export function Navbar() {
           {/* Desktop: nav links (middle) */}
           <nav
             aria-label="Main"
-            className="hidden md:flex flex-1 justify-center gap-1"
+            className="hidden md:flex flex-1 justify-center items-center gap-2"
           >
-            {navLinks.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className="font-heading uppercase rounded-lg px-4 py-2 text-foreground hover:bg-background transition-colors font-bold tracking-wide text-xl"
-              >
-                {label}
-              </Link>
-            ))}
+            <Link
+              href="/"
+              className="font-heading uppercase rounded-lg px-4 py-2 text-foreground hover:bg-background transition-colors font-bold tracking-wide text-xl"
+            >
+              Home
+            </Link>
+            <MultiselectDropdown
+              options={[...orderOptions]}
+              value={[]}
+              onChange={() => {}}
+              placeholder="Order"
+              searchable={false}
+              multiSelect={false}
+              onSelectOption={(href) => router.push(href)}
+              triggerClassName="font-heading uppercase px-4 py-2 text-foreground hover:bg-background transition-colors font-bold tracking-wide text-xl border-0 bg-transparent shadow-none focus-visible:ring-accent"
+              showChevron={false}
+              openOnHover
+            />
+            <MultiselectDropdown
+              options={[...aboutOptions]}
+              value={[]}
+              onChange={() => {}}
+              placeholder="About"
+              searchable={false}
+              multiSelect={false}
+              onSelectOption={(href) => router.push(href)}
+              triggerClassName="font-heading uppercase px-4 py-2 text-foreground hover:bg-background transition-colors font-bold tracking-wide text-xl border-0 bg-transparent shadow-none focus-visible:ring-accent"
+              showChevron={false}
+              openOnHover
+            />
           </nav>
 
           {/* Desktop: actions (right) | Mobile: search + cart (right) */}

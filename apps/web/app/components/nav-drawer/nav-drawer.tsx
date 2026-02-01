@@ -4,10 +4,17 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "../theme-toggle";
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/order", label: "Order" },
-  { href: "/about", label: "About" },
+const orderLinks = [
+  { href: "/order#cookies", label: "Cookies" },
+  { href: "/order#tea-cakes", label: "Tea Cakes" },
+  { href: "/order#cheesecake", label: "Cheesecake" },
+  { href: "/order#fudge-brownies", label: "Fudge Brownies" },
+  { href: "/order#cakes", label: "Cakes" },
+] as const;
+
+const aboutLinks = [
+  { href: "/about/our-journey", label: "Our journey" },
+  { href: "/about/contact", label: "Contact us" },
 ] as const;
 
 type NavDrawerProps = {
@@ -49,12 +56,31 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
             </button>
           </div>
           <nav className="flex flex-1 flex-col gap-1 p-4">
-            {navLinks.map(({ href, label }) => (
+            <Link
+              href="/"
+              onClick={onClose}
+              className="rounded-lg px-4 py-3 text-foreground hover:bg-background transition-colors font-medium"
+            >
+              Home
+            </Link>
+            <span className="mt-2 px-4 text-xs font-semibold uppercase tracking-wide text-muted">Order</span>
+            {orderLinks.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
                 onClick={onClose}
-                className="rounded-lg px-4 py-3 text-foreground hover:bg-background transition-colors font-medium"
+                className="rounded-lg px-6 py-2 text-foreground hover:bg-background transition-colors font-medium"
+              >
+                {label}
+              </Link>
+            ))}
+            <span className="mt-2 px-4 text-xs font-semibold uppercase tracking-wide text-muted">About</span>
+            {aboutLinks.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={onClose}
+                className="rounded-lg px-6 py-2 text-foreground hover:bg-background transition-colors font-medium"
               >
                 {label}
               </Link>
