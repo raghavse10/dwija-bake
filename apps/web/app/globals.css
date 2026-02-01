@@ -1,12 +1,63 @@
 @import "tailwindcss";
 
+/*
+  @theme: Tailwind v4 design tokens.
+  - --color-* names generate utilities: bg-*, text-*, border-*, etc.
+  - Semantic tokens (background, foreground, …) reference :root/.dark
+    so they switch with the theme; define those values below.
+*/
+@theme {
+  /* Brand (same in both themes) */
+  --color-brand-deep: #592935;
+  --color-brand-gold: #d1a565;
+  /* Pink palette */
+  --color-pink-mist: #f7dae7;
+  --color-pink-bubblegum: #e2b4c1;
+  --color-pink-cherry: #d38c9d;
+  --color-pink-blush: #e3899c;
+  --color-pink-coral: #d16f84;
+  --color-pink-ruby: #c75870;
+  --color-pink-deep: #a55166;
+  --color-pink-burgundy: #a24358;
+  /* Semantic (resolve from :root / .dark below) */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-gold: var(--accent-gold);
+}
+
+/* Light theme – pink/cream with brand colors */
 :root {
-  --background: #0f0f0f;
-  --foreground: #fafafa;
+  --background: #FDEDED;
+  --foreground: #592935;
+  --surface: #FDF2F7;
+  --muted: #8a4355;
+  --border: #E2B4C1;
+  --accent: #592935;
+  --accent-gold: #d1a565;
+}
+
+/* Dark theme – deeper burgundy/pink (no black), same brand colors */
+.dark {
+  --background: #2d1a21;
+  --foreground: #F7DAE7;
+  --surface: #3d2229;
+  --muted: #c9a0a8;
+  --border: #4a2d36;
+  --accent: #592935;
+  --accent-gold: #d1a565;
+}
+
+html {
+  overscroll-behavior: none;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: system-ui, sans-serif;
+  overscroll-behavior: none;
 }
